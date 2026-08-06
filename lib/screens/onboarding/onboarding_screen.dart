@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import '../../utils/preferences.dart';
 import '../auth/login_screen.dart';
 
@@ -17,17 +18,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       "title": "Connect With Friends",
       "description": "Chat instantly with your friends anytime anywhere",
-      "image": "assets/images/chat.png"
+      "animation": "https://lottie.host/4f0bc830-6a92-4720-ac6d-8fe153050ff2/zA97IkcUBJ.json"
     },
     {
       "title": "Fast And Secure",
       "description": "Your messages are private and secure",
-      "image": "assets/images/security.png"
+      "animation": "https://lottie.host/2b60a438-b83c-4317-b78f-201c35c792da/WrpEF9cYUf.json"
     },
     {
       "title": "Start Messaging",
       "description": "Enjoy real time messaging experience",
-      "image": "assets/images/start.png"
+      "animation": "https://lottie.host/e6e92a1c-932b-4078-a1f5-b4f10a56f83a/3Im4FYAK76.json"
     },
   ];
 
@@ -47,6 +48,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOutCubic,
     );
+  }
+
+  // Single handler for the round arrow button:
+  // - on any page except the last -> go to next page
+  // - on the last page -> finish onboarding (no separate "Start Messaging" button)
+  void onArrowPressed() {
+    final bool isLastPage = currentIndex == pages.length - 1;
+    if (isLastPage) {
+      finishOnboarding();
+    } else {
+      goToNextPage();
+    }
   }
 
   @override
@@ -80,16 +93,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Cute fixed-size image, capped so it never
+                          // Lottie animation, capped so it never
                           // shows at the asset's full default size.
                           SizedBox(
-                            width: 180,
-                            height: 180,
-                            child: Image.asset(
-                              pages[index]["image"]!,
-                              width: 180,
-                              height: 180,
+                            width: 260,
+                            height: 260,
+                            child: Lottie.network(
+                              pages[index]["animation"]!,
+                              width: 260,
+                              height: 260,
                               fit: BoxFit.contain,
+                              repeat: true,
+                              animate: true,
+                              frameRate: FrameRate.max,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(
+                                  Icons.image_not_supported_outlined,
+                                  size: 80,
+                                  color: Colors.grey,
+                                );
+                              },
                             ),
                           ),
                           const SizedBox(height: 36),
@@ -177,59 +200,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const SizedBox(height: 30),
 
                 // ---------- Bottom action area ----------
-                // Non-last pages: a round arrow-forward button, bottom-right.
-                // Last page: full-width "Start Messaging" button, same spot.
+                // Always just the round arrow-forward button, bottom-right.
+                // On the last page it triggers finishOnboarding instead of
+                // moving to the next page — no separate "Start Messaging"
+                // full-width button.
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: SizedBox(
                     height: 56,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      child: isLastPage
-                          ? SizedBox(
-                        key: const ValueKey('start-messaging'),
-                        width: double.infinity,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: SizedBox(
+                        width: 56,
                         height: 56,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF1da1f2),
                             foregroundColor: Colors.white,
                             elevation: 3,
-                            shadowColor: const Color(0xFF1da1f2)
-                                .withOpacity(0.4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
+                            shadowColor:
+                            const Color(0xFF1da1f2).withOpacity(0.4),
+                            shape: const CircleBorder(),
+                            padding: EdgeInsets.zero,
                           ),
-                          onPressed: finishOnboarding,
-                          child: const Text(
-                            "Start Messaging",
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      )
-                          : Align(
-                        key: const ValueKey('next-arrow'),
-                        alignment: Alignment.centerRight,
-                        child: SizedBox(
-                          width: 56,
-                          height: 56,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1da1f2),
-                              foregroundColor: Colors.white,
-                              elevation: 3,
-                              shadowColor: const Color(0xFF1da1f2)
-                                  .withOpacity(0.4),
-                              shape: const CircleBorder(),
-                              padding: EdgeInsets.zero,
-                            ),
-                            onPressed: goToNextPage,
-                            child: const Icon(
-                              Icons.arrow_forward_rounded,
+                          onPressed: onArrowPressed,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            transitionBuilder: (child, animation) =>
+                                ScaleTransition(
+                                    scale: animation, child: child),
+                            child: Icon(
+                              isLastPage
+                                  ? Icons.check_rounded
+                                  : Icons.arrow_forward_rounded,
+                              key: ValueKey(isLastPage),
                               size: 26,
                             ),
                           ),
