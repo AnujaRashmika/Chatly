@@ -1,5 +1,7 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
@@ -25,6 +27,13 @@ Future<void> main() async {
   // onboarding done, user already logged in -> Home
   final bool onboardingCompleted = await Preferences.isOnboardingCompleted();
   final bool isLoggedIn = FirebaseAuth.instance.currentUser != null;
+
+  // App Check activate
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: kDebugMode
+        ? AndroidProvider.debug
+        : AndroidProvider.playIntegrity,
+  );
 
   runApp(ChatApp(
     onboardingCompleted: onboardingCompleted,

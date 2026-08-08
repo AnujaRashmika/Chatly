@@ -45,6 +45,8 @@ dependencies:
   shared_preferences: ^2.5.5
   intl_phone_field: ^3.2.0
   lottie: ^3.5.1
+  pinput: ^6.0.2
+  firebase_app_check: ^0.4.6
 
 dev_dependencies:
   flutter_test:
